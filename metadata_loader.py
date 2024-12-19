@@ -142,8 +142,8 @@ def _test_vis_translations(metadata_train, metadata_val, metadata_test):
     ray_length = 8
     img_dim = 800
     focal_length = .5 * img_dim / np.tan(.5 * 0.6911112070083618)
-    rotation = rotations[50]
-    translation = translations[50]
+    rotation = rotations[2]
+    translation = translations[2]
 
     print(translation, rotation)
 

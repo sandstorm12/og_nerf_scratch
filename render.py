@@ -175,10 +175,10 @@ def _test_render_batch(device):
     img_dim = 800
     focal_length = .5 * img_dim / np.tan(.5 * 0.6911112070083618)
     rotation = np.asarray(
-        [[-0.93265635, -0.22499779,  0.2820071],
-         [0.36076587, -0.58166701,  0.72904819],
-         [0.,          0.78169,     0.62366706],])
-    translation = np.asarray([1.13680696, 2.93888736, 2.51408243])
+        [[0.44296363,  0.31377721, -0.83983749],
+         [-0.89653969,  0.15503149, -0.41494811],
+         [0.,          0.93675458,  0.3499869],])
+    translation = np.asarray([-3.38549352, -1.67270947,  1.41084266])
 
     us = np.asarray([u for _ in range(img_dim) for u in range(img_dim)])
     vs = np.asarray([v for v in range(img_dim) for _ in range(img_dim)])
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     nerf = NeRF()
-    nerf.load_state_dict(torch.load("./artifacts/nerf_39_0.0066.pt"))
+    nerf.load_state_dict(torch.load("./artifacts/nerf_38_0.0056.pt"))
     nerf.to(device)
 
     # _test_points()
