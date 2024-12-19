@@ -1,4 +1,4 @@
 train: "./data/nerf_synthetic/lego/transforms_train.json"
 test: "./data/nerf_synthetic/lego/transforms_test.json"
 val: "./data/nerf_synthetic/lego/transforms_val.json"
-visualize_images: False
+visualize_images: True

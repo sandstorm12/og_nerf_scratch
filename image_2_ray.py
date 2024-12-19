@@ -9,12 +9,12 @@ def _image_2_ray_uv(image, u, v, focal_length, rotation, translation):
     cy = image.shape[0] // 2
 
     x = (u - cx) / focal_length
-    y = (v - cy) / focal_length
-    z = np.ones_like(x)
+    y = -(v - cy) / focal_length
+    z = -np.ones_like(x)
 
     direction = np.asarray([x, y, z])
     direction = np.dot(rotation, direction)
-    direction = np.add(direction, translation)
+    # direction = -1 * np.add(direction, translation)
 
     colors = image[v, u]
 
@@ -29,15 +29,15 @@ def image_2_ray_sample(image, focal_length, rotation, translation, num_samples):
     cy = image.shape[0] // 2
 
     x = (u - cx) / focal_length
-    y = (v - cy) / focal_length
-    z = np.ones_like(x)
+    y = -(v - cy) / focal_length
+    z = -np.ones_like(x)
 
     directions = np.stack((x, y, z), axis=-1)
-    directions = directions
     directions = np.dot(directions, rotation.T)
-    directions = np.add(directions, translation)
+    # directions = np.add(directions, translation)
+    directions = directions / np.linalg.norm(directions, axis=-1, keepdims=True)
 
-    colors = image[v, u] / 255
+    colors = image[v, u] / 255.
 
     return directions, colors
 

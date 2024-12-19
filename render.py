@@ -46,18 +46,19 @@ def _render_pixel_batch(nerf, points_batch, directions, step_size):
     return color
 
 
-def _sample_points(u, v, num_samples, ray_length, img_dim, focal_length, rotation, translation):
+def _sample_points(u, v, num_samples, ray_length, img_dim, focal_length,
+                   rotation, translation):
     cx = img_dim // 2
     cy = img_dim // 2
 
     x = (u - cx) / focal_length
-    y = (v - cy) / focal_length
-    z = np.ones_like(x)
+    y = -(v - cy) / focal_length
+    z = -np.ones_like(x)
 
     direction = np.asarray([x, y, z])
-    direction = direction / np.linalg.norm(direction)
     direction = np.dot(rotation, direction)
-    direction = np.add(direction, translation)
+    # direction = np.add(direction, translation)
+    direction = direction / np.linalg.norm(direction)
 
     steps = np.linspace(0, ray_length, num_samples)
     points = np.asarray([translation + direction * step for step in steps])
@@ -65,17 +66,19 @@ def _sample_points(u, v, num_samples, ray_length, img_dim, focal_length, rotatio
     return points, direction
 
 
-def _sample_points_batch(u, v, num_samples, ray_length, img_dim, focal_length, rotation, translation):
+def _sample_points_batch(u, v, num_samples, ray_length, img_dim, focal_length,
+                         rotation, translation):
     cx = img_dim // 2
     cy = img_dim // 2
 
     x = (u - cx) / focal_length
-    y = (v - cy) / focal_length
-    z = np.ones_like(x)
+    y = -(v - cy) / focal_length
+    z = -np.ones_like(x)
 
     directions = np.stack((x, y, z), axis=-1)
     directions = np.dot(directions, rotation.T)
-    directions = np.add(directions, translation)
+    # directions = np.add(directions, translation)
+    directions = directions / np.linalg.norm(directions, axis=-1, keepdims=True)
 
     steps = np.linspace(0, ray_length, num_samples)
     points = np.asarray([translation + directions * step for step in steps])
@@ -96,7 +99,7 @@ def _test_points():
 
     us = [0, 400, 800]
     vs = [0, 400, 800]
-    
+
     points_all = []
     for u in us:
         for v in vs:
@@ -171,13 +174,16 @@ def _test_render_batch(device):
     ray_length = 8
     img_dim = 800
     focal_length = .5 * img_dim / np.tan(.5 * 0.6911112070083618)
-    rotation = np.identity(3)
-    translation = np.zeros(3)
+    rotation = np.asarray(
+        [[-0.93265635, -0.22499779,  0.2820071],
+         [0.36076587, -0.58166701,  0.72904819],
+         [0.,          0.78169,     0.62366706],])
+    translation = np.asarray([1.13680696, 2.93888736, 2.51408243])
 
     us = np.asarray([u for _ in range(img_dim) for u in range(img_dim)])
     vs = np.asarray([v for v in range(img_dim) for _ in range(img_dim)])
     with torch.no_grad():
-        image = np.zeros((img_dim, img_dim, 3))
+        image = np.zeros((img_dim, img_dim, 3), np.uint8)
 
         batch_size = 2048
         num_batches = math.ceil(len(us) / batch_size)
@@ -205,7 +211,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     nerf = NeRF()
-    nerf.load_state_dict(torch.load("./artifacts/nerf_raw.pt"))
+    nerf.load_state_dict(torch.load("./artifacts/nerf_39_0.0066.pt"))
     nerf.to(device)
 
     # _test_points()

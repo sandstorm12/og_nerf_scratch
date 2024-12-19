@@ -55,7 +55,8 @@ def _render_pixel_batch(nerf, points_batch, directions, step_size):
 
 def _sample_points_batch(directions, translation, num_samples, ray_length):
     steps = torch.linspace(0, ray_length, num_samples, dtype=torch.float32)
-    points = torch.stack([translation + directions * step for step in steps]).to(torch.float32)
+    points = torch.stack(
+        [translation + directions * step for step in steps]).to(torch.float32)
     points = points.permute(1, 0, 2)
 
     return points
@@ -66,22 +67,23 @@ def train(configs):
     torch.autograd.set_detect_anomaly(True)
 
     nerf = NeRF()
-    # nerf.load_state_dict(torch.load("./artifacts/nerf_raw.pt"))
+    nerf.load_state_dict(torch.load("./artifacts/nerf_39_0.0066.pt"))
     nerf.to(device)
     
     metadata_train, _, _ = load_metadata(configs)
-    images_train = load_images(metadata_train, os.path.dirname(configs['train']))
+    images_train = load_images(metadata_train,
+                               os.path.dirname(configs['train']))
     transforms_train = get_transforms(metadata_train)
     num_samples = 100
 
-    optimizer = torch.optim.Adam(nerf.parameters(), lr=1e-6)
+    optimizer = torch.optim.Adam(nerf.parameters(), lr=5e-4)
     loss_fn = torch.nn.MSELoss()
 
-    loss_epoch = 0
-
     dataset = NeRFDataset(images_train, transforms_train, 2048)
-    for epoch in range(configs["epochs"]):
-        for batch in tqdm(dataset):
+    bar = tqdm(range(configs["epochs"]))
+    for epoch in bar:
+        loss_epoch = 0
+        for batch in dataset:
             ray_directions, ray_source, ray_colors = batch
             ray_directions = ray_directions.to(device)
             ray_source = ray_source.to(device)
@@ -91,7 +93,8 @@ def train(configs):
                 ray_directions, ray_source, num_samples, ray_length=8
             ).to(device)
 
-            color = _render_pixel_batch(nerf, points, ray_directions, step_size=8/num_samples)
+            color = _render_pixel_batch(nerf, points, ray_directions,
+                                        step_size=8/num_samples)
 
             loss = loss_fn(color, ray_colors)
             optimizer.zero_grad()
@@ -100,9 +103,12 @@ def train(configs):
 
             loss_epoch += loss.item()
 
-        print(f"Epoch: {epoch}, Loss: {loss_epoch / len(dataset)}")
+        bar.set_description(
+            f"Epoch: {epoch}, Loss: {loss_epoch / len(dataset):.4f}")
 
-        torch.save(nerf.state_dict(), f"./artifacts/nerf_{epoch}.pt")
+        torch.save(
+            nerf.state_dict(),
+            f"./artifacts/nerf_{epoch}_{loss_epoch / len(dataset):.4f}.pt")
 
 
 if __name__ == "__main__":
