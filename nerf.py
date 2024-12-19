@@ -34,11 +34,11 @@ class NeRF(nn.Module):
         x = self._positional_encoding(x, 10)
         y = self._positional_encoding(y, 10)
         z = self._positional_encoding(z, 10)
-        phi = self._positional_encoding(phi, 6)
-        theta = self._positional_encoding(theta, 6)
+        # phi = self._positional_encoding(phi, 6)
+        # theta = self._positional_encoding(theta, 6)
 
         location = torch.cat([x, y, z], -1)
-        direction = torch.cat([phi, theta], -1)
+        # direction = torch.cat([phi, theta], -1)
 
         t = F.relu_(self._linear_0(location))
         t = F.relu_(self._linear_1(t))
@@ -50,10 +50,12 @@ class NeRF(nn.Module):
         t = F.relu_(self._linear_6(t))
         t = F.relu_(self._linear_7(t))
 
-        rgba = self._output(t)
+        t = self._output(t)
 
-        rgba[:3] = F.sigmoid(rgba[:3])
-        rgba[3] = F.softplus(rgba[3])
+        rgb = F.sigmoid(t[..., :3])
+        a = F.softplus(t[..., 3])
+
+        rgba = torch.cat([rgb, a[..., None]], -1)
 
         return rgba
 
@@ -61,9 +63,11 @@ class NeRF(nn.Module):
 if __name__ == "__main__":
     nerf = NeRF()
     
-    x = torch.tensor(0)
-    y = torch.tensor(0)
-    z = torch.tensor(0)
-    phi = torch.tensor(0)
-    theta = torch.tensor(0)
+    x = torch.rand((4, 100), dtype=torch.float32) * 8 - 4
+    y = torch.rand((4, 100), dtype=torch.float32) * 8 - 4
+    z = torch.rand((4, 100), dtype=torch.float32) * 8 - 4
+    phi = torch.rand((4, 100), dtype=torch.float32)
+    theta = torch.rand((4, 100), dtype=torch.float32)
     rgba = nerf(x, y, z, phi, theta)
+
+    torch.save(nerf.state_dict(), "./artifacts/nerf_raw.pt")

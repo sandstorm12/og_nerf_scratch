@@ -48,16 +48,13 @@ class NeRFDataset(torch.utils.data.Dataset):
         rotation = transform[:3, :3]
         translation = transform[:3, 3]
 
-        print(rotation.shape, translation.shape)
-        print(focal_length, rotation, translation)
-
         directions, colors = image_2_ray_sample(
             image, focal_length, rotation, translation, self._num_samples)
         
         ray_directions = torch.from_numpy(directions)
         ray_source = torch.from_numpy(
             np.tile(translation, (self._num_samples, 1)))
-        ray_colors = torch.from_numpy(colors)
+        ray_colors = torch.from_numpy(colors).to(torch.float32)
 
         return ray_directions, ray_source, ray_colors
 

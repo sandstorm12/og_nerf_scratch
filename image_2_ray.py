@@ -32,14 +32,12 @@ def image_2_ray_sample(image, focal_length, rotation, translation, num_samples):
     y = (v - cy) / focal_length
     z = np.ones_like(x)
 
-    print(x.shape, y.shape, z.shape)
-
     directions = np.stack((x, y, z), axis=-1)
-    print(rotation.shape, directions.shape)
+    directions = directions
     directions = np.dot(directions, rotation.T)
     directions = np.add(directions, translation)
 
-    colors = image[v, u]
+    colors = image[v, u] / 255
 
     return directions, colors
 
