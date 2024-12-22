@@ -1,11 +1,8 @@
-import cv2
 import math
 import torch
 import numpy as np
 
-
 from nerf import NeRF
-
 
 
 def _render_pixel(nerf, points, direction, step_size):    

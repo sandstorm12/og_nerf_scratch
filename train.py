@@ -1,36 +1,13 @@
 import os
-import yaml
 import torch
-import argparse
-import numpy as np
+
+from config_utils import get_arguments, load_configs
 
 from metadata_loader import load_metadata, load_images, get_transforms
 from dataloader import NeRFDataset
 from nerf import NeRF
 
 from tqdm import tqdm
-
-
-def _get_arguments():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '-c', '--config',
-        help='Path to the config file',
-        type=str,
-        required=True,
-    )
-
-    args = parser.parse_args()
-
-    return args
-
-
-def _load_configs(path):
-    with open(path, 'r') as yaml_file:
-        configs = yaml.safe_load(yaml_file)
-
-    return configs
 
 
 def _render_pixel_batch(nerf, points_batch, directions, step_size):
@@ -112,8 +89,8 @@ def train(configs):
 
 
 if __name__ == "__main__":
-    args = _get_arguments()
-    configs = _load_configs(args.config)
+    args = get_arguments()
+    configs = load_configs(args.config)
 
     print("Configs:", configs)
 
