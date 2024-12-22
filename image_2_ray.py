@@ -1,9 +1,6 @@
 import numpy as np
 
 
-# TODO: How to visualize these results
-
-
 def _image_2_ray_uv(image, u, v, focal_length, rotation, translation):
     cx = image.shape[1] // 2
     cy = image.shape[0] // 2
