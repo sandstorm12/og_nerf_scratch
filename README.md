@@ -1,12 +1,17 @@
-# og_nerf_scratch
+# Original NeRF from scratch using PyTorch
 
 This is the implementation of the original NeRF from scratch using PyTorch.
 
 I tried to make it as simple as possible so this codebase can be a code starting point to learn and implement nerf.
 
+Thanks to https://github.com/yenchenlin/nerf-pytorch which I used as a reference.
+
 ## Demo
 
-![](imgs/demo.png)
+<div style="display: flex; justify-content: space-between;">
+  <img src="imgs/demo_1.png" alt="Image 1" width="45%" />
+  <img src="imgs/demo_2.png" alt="Image 2" width="45%" />
+</div>
 
 ## Setup
 

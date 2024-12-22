@@ -1,0 +1,26 @@
+num_samples: 200
+ray_length: 8
+img_dim: 800
+fov: 0.6911112070083618
+view_dims:
+  - 720
+  - 720
+scaling_factor: 16
+batch_size: 2048
+rotation_init:
+  -
+    - .24
+    - .63
+    - .71
+  -
+    - -.3
+    - .75
+    - -.56
+  -
+    - -.91
+    - -.08
+    - 0.37
+translation_init:
+  - 3.01
+  - -2.46
+  - 1.7
