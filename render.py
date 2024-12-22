@@ -5,7 +5,7 @@ import numpy as np
 from nerf import NeRF
 
 
-def _render_pixel(nerf, points, direction, step_size):    
+def render_pixel(nerf, points, direction, step_size):    
     rgbas = nerf(points[:, 0], points[:, 1], points[:, 2], direction[0], direction[1])
     rgb, sigma = rgbas[:, :3], rgbas[:, 3]
     
@@ -21,7 +21,7 @@ def _render_pixel(nerf, points, direction, step_size):
     return color
 
 
-def _render_pixel_batch(nerf, points_batch, directions, step_size):
+def render_pixel_batch(nerf, points_batch, directions, step_size):
     rgbas = nerf(points_batch[..., 0], points_batch[..., 1],
                  points_batch[..., 2],
                  directions[..., 0], directions[..., 1])
@@ -43,7 +43,7 @@ def _render_pixel_batch(nerf, points_batch, directions, step_size):
     return color
 
 
-def _sample_points(u, v, num_samples, ray_length, img_dim, focal_length,
+def sample_points(u, v, num_samples, ray_length, img_dim, focal_length,
                    rotation, translation):
     cx = img_dim // 2
     cy = img_dim // 2
@@ -63,7 +63,7 @@ def _sample_points(u, v, num_samples, ray_length, img_dim, focal_length,
     return points, direction
 
 
-def _sample_points_batch(u, v, num_samples, ray_length, img_dim, focal_length,
+def sample_points_batch(u, v, num_samples, ray_length, img_dim, focal_length,
                          rotation, translation):
     cx = img_dim // 2
     cy = img_dim // 2
@@ -100,7 +100,7 @@ def _test_points():
     points_all = []
     for u in us:
         for v in vs:
-            points, _ = _sample_points(u, v, num_samples, ray_length,
+            points, _ = sample_points(u, v, num_samples, ray_length,
                                     img_dim, focal_length, rotation, translation)
             
             points_all += points
@@ -124,7 +124,7 @@ def _test_points_batch():
 
     us = np.asarray([0, 0, 0, 400, 400,400, 800, 800, 800])
     vs = np.asarray([0, 400, 800, 0, 400, 800, 0, 400, 800])
-    points, _ = _sample_points_batch(us, vs, num_samples, ray_length,
+    points, _ = sample_points_batch(us, vs, num_samples, ray_length,
                             img_dim, focal_length, rotation, translation)
     
     pcd = o3d.geometry.PointCloud()
@@ -149,12 +149,12 @@ def _test_render(device):
         image = np.zeros((img_dim, img_dim, 3))
         for u in tqdm(range(img_dim)):
             for v in range(img_dim):
-                points, direction = _sample_points(u, v, num_samples, ray_length,
+                points, direction = sample_points(u, v, num_samples, ray_length,
                                         img_dim, focal_length, rotation, translation)
                 
                 points = torch.tensor(points, dtype=torch.float32, device=device)
                 direction = torch.tensor(direction, dtype=torch.float32, device=device)
-                color = _render_pixel(nerf, points, direction, step_size=ray_length/num_samples)
+                color = render_pixel(nerf, points, direction, step_size=ray_length/num_samples)
                 color = (color.cpu().detach().numpy() * 255)
 
                 image[u, v] = color
@@ -188,12 +188,12 @@ def _test_render_batch(device):
             us_batch = us[idx*batch_size:min(len(us), (idx+1)*batch_size)]
             vs_batch = vs[idx*batch_size:min(len(vs), (idx+1)*batch_size)]
 
-            points, directions = _sample_points_batch(us_batch, vs_batch, num_samples, ray_length,
+            points, directions = sample_points_batch(us_batch, vs_batch, num_samples, ray_length,
                                     img_dim, focal_length, rotation, translation)
             
             points = torch.tensor(points, dtype=torch.float32, device=device)
             directions = torch.tensor(directions, dtype=torch.float32, device=device)
-            color = _render_pixel_batch(nerf, points, directions, step_size=ray_length/num_samples)
+            color = render_pixel_batch(nerf, points, directions, step_size=ray_length/num_samples)
             color = (color.cpu().detach().numpy() * 255)
 
             image[us_batch, vs_batch] = color
@@ -223,12 +223,12 @@ if __name__ == "__main__":
 
     # u = 400
     # v = 400
-    # points, direction = _sample_points(u, v, num_samples, ray_length,
+    # points, direction = sample_points(u, v, num_samples, ray_length,
     #                         img_dim, focal_length, rotation, translation)
     
     # points = torch.tensor(points, dtype=torch.float32)
     # direction = torch.tensor(direction, dtype=torch.float32)
-    # _render_pixel(nerf, points, direction, step_size=ray_length/num_samples)
+    # render_pixel(nerf, points, direction, step_size=ray_length/num_samples)
 
 
     # _test_render(device)
