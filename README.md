@@ -47,13 +47,15 @@ python3 render.py
 ## Limitation
 
 1. Currently only works with the logo dataset. Custom loaders needed for other datasets.
-2. Only uses uniform sampling.
-3. Doesn't utilize course and fine sampling.
-4. No support for multi-GPU training.
-5. No support for visualizing the training process.
-6. No support for visualizing the loss during training.
+1. Only uses uniform sampling.
+1. Doesn't utilize course and fine sampling.
+1. No view dependent rendering yet.
+1. No support for multi-GPU training.
+1. No support for visualizing the training process.
+1. No support for visualizing the loss during training.
 
 ## TODO
+1. Feature: View-dependent rendering
 1. Feature: Hierarchical volume sampling
 1. Feature: Progressive learning rate decay
 1. Feature: Multi-scale training
