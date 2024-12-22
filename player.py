@@ -53,6 +53,36 @@ def rotate_matrix(rotation_matrix, axis, degree):
     return rotated_matrix
 
 
+def _render(img_dim, focal_length, rotation, translation, batch_size, device):
+    us = np.asarray([u for _ in range(img_dim) for u in range(img_dim)])
+    vs = np.asarray([v for v in range(img_dim) for _ in range(img_dim)])
+    with torch.no_grad():
+        image = np.zeros((img_dim, img_dim, 3), np.uint8)
+
+        num_batches = math.ceil(len(us) / batch_size)
+        for idx in tqdm(range(num_batches)):
+            us_batch = us[idx*batch_size:min(len(us), (idx+1)*batch_size)]
+            vs_batch = vs[idx*batch_size:min(len(vs), (idx+1)*batch_size)]
+
+            points, directions = sample_points_batch(
+                us_batch, vs_batch, configs["num_samples"],
+                configs["ray_length"], img_dim, focal_length,
+                rotation, translation)
+            
+            points = torch.tensor(
+                points, dtype=torch.float32, device=device)
+            directions = torch.tensor(
+                directions, dtype=torch.float32, device=device)
+            color = render_pixel_batch(
+                nerf, points, directions,
+                step_size=configs["ray_length"]/configs["num_samples"])
+            color = (color.cpu().detach().numpy() * 255)
+
+            image[us_batch, vs_batch] = color
+
+    return image
+
+
 def _play(device, configs):
     img_dim = configs["img_dim"]
     focal_length = .5 * img_dim / np.tan(.5 * configs["fov"])
@@ -65,27 +95,8 @@ def _play(device, configs):
     translation = np.asarray(configs["translation_init"], dtype=np.float32)
 
     while True:
-        us = np.asarray([u for _ in range(img_dim) for u in range(img_dim)])
-        vs = np.asarray([v for v in range(img_dim) for _ in range(img_dim)])
-        with torch.no_grad():
-            image = np.zeros((img_dim, img_dim, 3), np.uint8)
-
-            num_batches = math.ceil(len(us) / batch_size)
-            for idx in tqdm(range(num_batches)):
-                us_batch = us[idx*batch_size:min(len(us), (idx+1)*batch_size)]
-                vs_batch = vs[idx*batch_size:min(len(vs), (idx+1)*batch_size)]
-
-                points, directions = sample_points_batch(
-                    us_batch, vs_batch, configs["num_samples"], configs["ray_length"],
-                    img_dim, focal_length, rotation, translation)
-                
-                points = torch.tensor(points, dtype=torch.float32, device=device)
-                directions = torch.tensor(directions, dtype=torch.float32, device=device)
-                color = render_pixel_batch(nerf, points, directions,
-                                            step_size=configs["ray_length"]/configs["num_samples"])
-                color = (color.cpu().detach().numpy() * 255)
-
-                image[us_batch, vs_batch] = color
+        image = _render(img_dim, focal_length, rotation,
+                        translation, batch_size, device)
 
         image = cv2.resize(image, configs["view_dims"])
         cv2.imshow("image", image)
